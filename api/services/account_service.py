@@ -169,6 +169,7 @@ class AccountService:
             account.status = AccountStatus.ACTIVE.value
             account.initialized_at = datetime.now(UTC).replace(tzinfo=None)
 
+        TenantService.create_owner_tenant_if_not_exist(account)
         db.session.commit()
 
         return cast(Account, account)
@@ -612,12 +613,14 @@ class TenantService:
     ):
         """Check if user have a workspace or not"""
         available_ta = (
-            TenantAccountJoin.query.filter_by(account_id=account.id).order_by(TenantAccountJoin.id.asc()).first()
+            TenantAccountJoin.query.filter_by(account_id=account.id).filter_by(role="owner").order_by(TenantAccountJoin.id.asc()).first()
         )
 
         if available_ta:
+            print("available_ta for " + account.name)
             return
 
+        print("NOT available_ta for " + account.name)
         """Create owner tenant if not exist"""
         if not FeatureService.get_system_features().is_allow_create_workspace and not is_setup:
             raise WorkSpaceNotAllowedCreateError()

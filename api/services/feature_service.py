@@ -47,13 +47,13 @@ class FeatureModel(BaseModel):
     members: LimitationModel = LimitationModel(size=0, limit=1)
     apps: LimitationModel = LimitationModel(size=0, limit=10)
     vector_space: LimitationModel = LimitationModel(size=0, limit=5)
-    knowledge_rate_limit: int = 10
+    knowledge_rate_limit: int = 1000
     annotation_quota_limit: LimitationModel = LimitationModel(size=0, limit=10)
     documents_upload_quota: LimitationModel = LimitationModel(size=0, limit=50)
     docs_processing: str = "standard"
-    can_replace_logo: bool = False
-    model_load_balancing_enabled: bool = False
-    dataset_operator_enabled: bool = False
+    can_replace_logo: bool = True
+    model_load_balancing_enabled: bool = True
+    dataset_operator_enabled: bool = True
 
     # pydantic configs
     model_config = ConfigDict(protected_namespaces=())
@@ -71,13 +71,13 @@ class SystemFeatureModel(BaseModel):
     sso_enforced_for_web: bool = False
     sso_enforced_for_web_protocol: str = ""
     enable_web_sso_switch_component: bool = False
-    enable_marketplace: bool = False
+    enable_marketplace: bool = True
     max_plugin_package_size: int = dify_config.PLUGIN_MAX_PACKAGE_SIZE
     enable_email_code_login: bool = False
     enable_email_password_login: bool = True
     enable_social_oauth_login: bool = False
     is_allow_register: bool = False
-    is_allow_create_workspace: bool = False
+    is_allow_create_workspace: bool = True
     is_email_setup: bool = False
     license: LicenseModel = LicenseModel()
 
@@ -115,9 +115,6 @@ class FeatureService:
 
             cls._fulfill_params_from_enterprise(system_features)
 
-        if dify_config.MARKETPLACE_ENABLED:
-            system_features.enable_marketplace = True
-
         return system_features
 
     @classmethod
@@ -126,14 +123,10 @@ class FeatureService:
         system_features.enable_email_password_login = dify_config.ENABLE_EMAIL_PASSWORD_LOGIN
         system_features.enable_social_oauth_login = dify_config.ENABLE_SOCIAL_OAUTH_LOGIN
         system_features.is_allow_register = dify_config.ALLOW_REGISTER
-        system_features.is_allow_create_workspace = dify_config.ALLOW_CREATE_WORKSPACE
         system_features.is_email_setup = dify_config.MAIL_TYPE is not None and dify_config.MAIL_TYPE != ""
 
     @classmethod
     def _fulfill_params_from_env(cls, features: FeatureModel):
-        features.can_replace_logo = dify_config.CAN_REPLACE_LOGO
-        features.model_load_balancing_enabled = dify_config.MODEL_LB_ENABLED
-        features.dataset_operator_enabled = dify_config.DATASET_OPERATOR_ENABLED
         features.education.enabled = dify_config.EDUCATION_ENABLED
 
     @classmethod
@@ -168,15 +161,6 @@ class FeatureService:
         if "docs_processing" in billing_info:
             features.docs_processing = billing_info["docs_processing"]
 
-        if "can_replace_logo" in billing_info:
-            features.can_replace_logo = billing_info["can_replace_logo"]
-
-        if "model_load_balancing_enabled" in billing_info:
-            features.model_load_balancing_enabled = billing_info["model_load_balancing_enabled"]
-
-        if "knowledge_rate_limit" in billing_info:
-            features.knowledge_rate_limit = billing_info["knowledge_rate_limit"]["limit"]
-
     @classmethod
     def _fulfill_params_from_enterprise(cls, features):
         enterprise_info = EnterpriseService.get_info()
@@ -198,12 +182,6 @@ class FeatureService:
 
         if "enable_email_password_login" in enterprise_info:
             features.enable_email_password_login = enterprise_info["enable_email_password_login"]
-
-        if "is_allow_register" in enterprise_info:
-            features.is_allow_register = enterprise_info["is_allow_register"]
-
-        if "is_allow_create_workspace" in enterprise_info:
-            features.is_allow_create_workspace = enterprise_info["is_allow_create_workspace"]
 
         if "license" in enterprise_info:
             license_info = enterprise_info["license"]
