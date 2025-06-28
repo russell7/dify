@@ -47,7 +47,7 @@ class FeatureModel(BaseModel):
     members: LimitationModel = LimitationModel(size=0, limit=1)
     apps: LimitationModel = LimitationModel(size=0, limit=10)
     vector_space: LimitationModel = LimitationModel(size=0, limit=5)
-    knowledge_rate_limit: int = 10
+    knowledge_rate_limit: int = 1000
     annotation_quota_limit: LimitationModel = LimitationModel(size=0, limit=10)
     documents_upload_quota: LimitationModel = LimitationModel(size=0, limit=50)
     docs_processing: str = "standard"
